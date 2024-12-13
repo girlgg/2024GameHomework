@@ -90,6 +90,34 @@ void UCharacterSelectionWidget::UpdatePrimaryWeapon()
 	}
 }
 
+bool UCharacterSelectionWidget::GetIsWaiting() const
+{
+	if (AGameStateBase* GameState = UGameplayStatics::GetGameState(GetWorld()))
+	{
+		if (UMatchStateSystem* MatchState = GameState->GetComponentByClass<UMatchStateSystem>())
+		{
+			if (MatchState->GetMatchState() == EMatchState::WaitingToStart &&
+				MatchState->GetRoundState() == ERoundState::WaitingToStartRound)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+float UCharacterSelectionWidget::GetTimeLeftToStart() const
+{
+	if (AGameStateBase* GameState = UGameplayStatics::GetGameState(GetWorld()))
+	{
+		if (UMatchStateSystem* MatchState = GameState->GetComponentByClass<UMatchStateSystem>())
+		{
+			return MatchState->GetTimeLeftToStartMatch();
+		}
+	}
+	return 0.f;
+}
+
 void UCharacterSelectionWidget::InitButtons()
 {
 	OnButtonHovered(PlayButton, PlayText);

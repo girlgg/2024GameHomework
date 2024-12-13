@@ -29,8 +29,16 @@ void AWeaponBase::Shoot(const FVector& FireLocation)
 	// 生成子弹
 	// 目前本地生成后，调用服务器要求其他客户端生成，避免一定的延迟
 	// TODO 服务器发射从摄像机的子弹，客户端是枪的子弹，客户端向服务器插值，保证公平性
+
 	SpawnProjectile(FireLocation);
-	Server_SpawnProjectile(FireLocation);
+	if (HasAuthority())
+	{
+		Multicast_SpawnProjectile(FireLocation);
+	}
+	else
+	{
+		Server_SpawnProjectile(FireLocation);
+	}
 }
 
 void AWeaponBase::ReloadWeapon(int32 AddedAmmo)

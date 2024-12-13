@@ -77,6 +77,11 @@ void ACourseGameMode::HandleStartingNewPlayer_Implementation(APlayerController* 
 	}
 }
 
+APawn* ACourseGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
+{
+	return nullptr;
+}
+
 TArray<APlayerState*> ACourseGameMode::GetPlayersByTeam(int32 InTeamIdx)
 {
 	TArray<APlayerState*> TeamPlayers;

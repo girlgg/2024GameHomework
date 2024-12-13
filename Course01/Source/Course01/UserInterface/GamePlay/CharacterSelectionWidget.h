@@ -26,6 +26,13 @@ protected:
 	void UpdatePrimaryWeapon();
 
 	//~=============================================================================
+	// 蓝图调用
+	UFUNCTION(BlueprintCallable)
+	bool GetIsWaiting() const;
+	UFUNCTION(BlueprintCallable)
+	float GetTimeLeftToStart() const;
+
+	//~=============================================================================
 	// 按钮事件
 	void InitButtons();
 	UFUNCTION(BlueprintCallable)

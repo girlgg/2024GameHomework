@@ -62,16 +62,16 @@ void UMatchStateSystem::FlipRoundsWon()
 	OnRep_RoundsWonB();
 }
 
-void UMatchStateSystem::AddPoints(int32 InTeamIdx)
+void UMatchStateSystem::AddPoints(int32 InTeamIdx, int32 InScore)
 {
 	if (InTeamIdx == 0)
 	{
-		TeamAPoints = TeamAPoints + 1;
+		TeamAPoints = TeamAPoints + InScore;
 		OnRep_TeamAPoints();
 	}
 	else if (InTeamIdx == 1)
 	{
-		TeamBPoints = TeamBPoints + 1;
+		TeamBPoints = TeamBPoints + InScore;
 		OnRep_TeamBPoints();
 	}
 	AGameStateBase* GameState = UGameplayStatics::GetGameState(GetWorld());
@@ -136,6 +136,48 @@ void UMatchStateSystem::EndRound(int32 InWinnerTeam)
 	{
 		return;
 	}
+	WinnerTeam = InWinnerTeam;
+	GetOwner()->ForceNetUpdate();
+	float PostRoundTime = 0.f;
+	if (MatchSettings)
+	{
+		PostRoundTime = MatchSettings->GetPostRoundTime();
+	}
+	if (AddRoundsWon(InWinnerTeam))
+	{
+		SetRoundState(ERoundState::PostRound);
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::EndGame, PostRoundTime, false);
+	}
+	else
+	{
+		SetRoundState(ERoundState::PostRound);
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::ResetLevel, PostRoundTime, false);
+	}
+}
+
+bool UMatchStateSystem::AddRoundsWon(int32 InWinnerTeam)
+{
+	if (InWinnerTeam == 0)
+	{
+		RoundsWonA += 1;
+		OnRep_RoundsWonA();
+	}
+	else if (InWinnerTeam == 1)
+	{
+		RoundsWonB += 1;
+		OnRep_RoundsWonB();
+	}
+	if (MatchSettings)
+	{
+		int32 RoundsToWin = MatchSettings->GetRoundsToWin();
+		if (RoundsWonA >= RoundsToWin || RoundsWonB >= RoundsToWin)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void UMatchStateSystem::ResetScores()
@@ -145,6 +187,22 @@ void UMatchStateSystem::ResetScores()
 	TeamBPoints = 0;
 	OnRep_TeamBPoints();
 	GetOwner()->ForceNetUpdate();
+}
+
+void UMatchStateSystem::ResetLevel()
+{
+}
+
+void UMatchStateSystem::EndGame()
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		return;
+	}
+	SetMatchState(EMatchState::WaitingPostMatch);
+	GameMode->EndMatch();
+
+	// TODO 断开会话
 }
 
 void UMatchStateSystem::Update()
@@ -161,6 +219,18 @@ void UMatchStateSystem::UpdateMatchTimer()
 void UMatchStateSystem::UpdateTimeOutCounter()
 {
 	MatchTimeInSeconds = GetWorld()->GetTimerManager().GetTimerRemaining(TimeOutHandle);
+	if (MatchTimeInSeconds < .0001f)
+	{
+		// 本轮结束
+		if (TeamAPoints >= TeamBPoints)
+		{
+			EndRound(0);
+		}
+		else
+		{
+			EndRound(1);
+		}
+	}
 }
 
 void UMatchStateSystem::BeginPlay()

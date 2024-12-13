@@ -250,11 +250,9 @@ void ACoursePlayer::OnPostRound()
 			Subsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
-	// TODO StopAiming();
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->StopActiveMovement();
 	GetCharacterMovement()->DisableMovement();
-	// TODO PawnInfo->SetRunning(false);
 	bCanShoot = false;
 	GetWorld()->GetTimerManager().ClearTimer(AutoShootTimerHandle);
 	if (APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0))

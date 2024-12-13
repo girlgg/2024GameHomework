@@ -33,6 +33,12 @@ void AProjectileBase::BeginPlay()
 	Super::BeginPlay();
 
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBeginOverlap);
+	AActor* Player = GetOwner()->GetOwner();
+	if (Player)
+	{
+		CollisionBox->IgnoreActorWhenMoving(Player, true);
+	}
+	CollisionBox->IgnoreActorWhenMoving(GetOwner(), true);
 }
 
 void AProjectileBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -65,17 +71,18 @@ void AProjectileBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 	}
 	if (AScoreCube* ScoreCube = Cast<AScoreCube>(OtherActor))
 	{
+		int32 BoxScore = ScoreCube->GetScore();
 		if (ACoursePlayerStateBase* PlayerState = Cast<ACoursePlayerStateBase>(OwnerPlayer->GetPlayerState()))
 		{
 			if (UTeamComponent* Team = PlayerState->GetComponentByClass<UTeamComponent>())
 			{
 				int32 TeamIdx = Team->GetTeam();
-				MatchState->AddPoints(TeamIdx);
-				PlayerState->AddScoreToPlayer(50);
+				MatchState->AddPoints(TeamIdx, BoxScore);
+				PlayerState->AddScoreToPlayer(BoxScore);
 			}
 		}
-		ScoreCube->Destroy();
 		Destroy();
+		ScoreCube->Server_OnHit(GetActorForwardVector() * 1000.0f);
 	}
 }
 

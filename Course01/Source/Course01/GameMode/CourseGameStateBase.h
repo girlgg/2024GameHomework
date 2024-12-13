@@ -4,6 +4,7 @@
 #include "GameFramework/GameState.h"
 #include "CourseGameStateBase.generated.h"
 
+class UEndRoundWidget;
 class USpawnSystemComponent;
 class UMatchStateSystem;
 class UMatchSettings;
@@ -34,6 +35,9 @@ protected:
 	void GetObjectives();
 	void FlipTeams();
 
+	UFUNCTION()
+	void OnPostRound();
+
 	UPROPERTY(Replicated)
 	TArray<AActor*> Objectives;
 
@@ -46,6 +50,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftClassPtr<UUserWidget> GameModeWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftClassPtr<UEndRoundWidget> EndRoundScoresClass;
+
 	TSoftClassPtr<UUserWidget> ScoresBoardClass;
 	TSoftClassPtr<UUserWidget> EndGmeScoresClass;
 };

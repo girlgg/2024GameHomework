@@ -1,11 +1,13 @@
 ﻿#include "CourseGameStateBase.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Course01/CourseGameInstance.h"
 #include "Course01/Components/GameMode/MatchSettings.h"
 #include "Course01/Components/GameMode/MatchStateSystem.h"
 #include "Course01/Components/GameMode/SpawnSystemComponent.h"
 #include "Course01/Components/Player/TeamComponent.h"
 #include "Course01/GameObjectives/ObjectiveBase.h"
+#include "Course01/UserInterface/GamePlay/EndRoundWidget.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
@@ -20,6 +22,12 @@ ACourseGameStateBase::ACourseGameStateBase()
 void ACourseGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (MatchStateSystem)
+	{
+		MatchStateSystem->OnPostRound.AddDynamic(this, &ThisClass::OnPostRound);
+	}
+	
 	if (!HasAuthority() || MatchStateSystem->GetIsMenu())
 	{
 		return;
@@ -102,6 +110,25 @@ void ACourseGameStateBase::FlipTeams()
 		{
 			int32 TeamId = Team->GetTeam() == 0;
 			Team->Server_SetTeam(TeamId);
+		}
+	}
+}
+
+void ACourseGameStateBase::OnPostRound()
+{
+	if(UKismetSystemLibrary::IsDedicatedServer(GetWorld()))
+	{
+		return;
+	}
+	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		TSubclassOf<UEndRoundWidget> EndRoundClass = EndRoundScoresClass.LoadSynchronous();
+		if (EndRoundClass)
+		{
+			if (UEndRoundWidget* EndRoundWidget = CreateWidget<UEndRoundWidget>(PlayerController, EndRoundClass))
+			{
+				EndRoundWidget->AddToViewport();
+			}
 		}
 	}
 }

@@ -31,12 +31,14 @@ class COURSE01_API UMatchStateSystem : public UActorComponent
 
 public:
 	FORCEINLINE ERoundState GetRoundState() const { return RoundState; }
+	FORCEINLINE EMatchState GetMatchState() const { return MatchState; }
 	FORCEINLINE bool GetIsMenu() const { return bMenu; }
 	FORCEINLINE float GetTimeLeftToStartMatch() const { return TimeLeftToStartMatch; }
 	FORCEINLINE bool IsGameOver() const { return MatchState == EMatchState::WaitingPostMatch; }
 	FORCEINLINE bool IsRoundOver() const { return RoundState == ERoundState::PostRound; }
-	FORCEINLINE int32 GetTeamAPoints() const {return TeamAPoints;}
-	FORCEINLINE int32 GetTeamBPoints() const {return TeamBPoints;}
+	FORCEINLINE int32 GetTeamAPoints() const { return TeamAPoints; }
+	FORCEINLINE int32 GetTeamBPoints() const { return TeamBPoints; }
+	FORCEINLINE float GetCurrentTime() const { return MatchTimeInSeconds; }
 
 	UMatchStateSystem();
 
@@ -46,7 +48,7 @@ public:
 	void OnReset();
 	void FlipRoundsWon();
 
-	void AddPoints(int32 InTeamIdx);
+	void AddPoints(int32 InTeamIdx, int32 InScore);
 
 protected:
 	virtual void BeginPlay() override;
@@ -57,9 +59,13 @@ protected:
 	void StartMatchTimer();
 
 	void EndRound(int32 InWinnerTeam);
+	bool AddRoundsWon(int32 InWinnerTeam);
 
 	void ResetScores();
+	void ResetLevel();
 
+	void EndGame();
+	
 	UFUNCTION()
 	void Update();
 	UFUNCTION()
@@ -114,6 +120,8 @@ protected:
 	void OnRep_RoundsWonB();
 	UPROPERTY(ReplicatedUsing=OnRep_RoundsWonB)
 	int32 RoundsWonB{0};
+	UPROPERTY(Replicated)
+	int32 WinnerTeam{255};
 
 	UFUNCTION()
 	void OnRep_MatchState();

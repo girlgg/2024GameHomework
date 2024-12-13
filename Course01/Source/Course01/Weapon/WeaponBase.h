@@ -37,6 +37,11 @@ protected:
 	void Server_SpawnProjectile(const FVector& FireLocation);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnProjectile(const FVector& FireLocation);
+	/**
+	* Spawns a projectile at the specified fire location.
+	*
+	* @param FireLocation The location in the world from which the projectile should be spawned.
+	 */
 	void SpawnProjectile(const FVector& FireLocation);
 
 public:
